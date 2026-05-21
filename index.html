@@ -223,22 +223,30 @@
     </section>
 
     <!-- =========================
-         CONTACT SECTION
+         CONTACT SECTION (Updated Form)
     ========================== -->
     <section id="contact" class="contact-section">
         <h2 class="section-title">Contact <span>Me</span></h2>
         <div class="contact-container">
-            <form id="contactForm" class="contact-form">
+            <!-- Form Action और Method को FormSubmit से कनेक्ट किया गया है -->
+            <form id="contactForm" class="contact-form" action="https://formsubmit.co/sujeetdandotiya@gmail.com" method="POST">
+                
+                <!-- FormSubmit Configuration Settings (Hidden Inputs) -->
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_template" value="table">
+                <input type="hidden" name="_subject" value="New Portfolio Inquiry from Website">
+
+                <!-- JavaScript data capture के लिए सभी inputs में 'name' attribute जोड़ना अनिवार्य है -->
                 <div class="input-box">
-                    <input type="text" id="name" placeholder="Your Name" required>
+                    <input type="text" id="name" name="name" placeholder="Your Name" required>
                 </div>
                 <div class="input-box">
-                    <input type="email" id="email" placeholder="Your Email" required>
+                    <input type="email" id="email" name="email" placeholder="Your Email" required>
                 </div>
                 <div class="input-box">
-                    <textarea id="message" rows="6" placeholder="Your Message" required></textarea>
+                    <textarea id="message" name="message" rows="6" placeholder="Your Message" required></textarea>
                 </div>
-                <button type="submit" class="contact-btn">Send Message</button>
+                <button type="submit" class="contact-btn" id="submitBtn">Send Message</button>
             </form>
         </div>
     </section>
@@ -311,6 +319,7 @@
          JAVASCRIPT
     ========================== -->
     <script>
+        // Responsive Mobile Menu Logic
         const menuToggle = document.getElementById("menuToggle");
         const navLinks = document.getElementById("navLinks");
 
@@ -318,22 +327,42 @@
             navLinks.classList.toggle("active");
         });
 
-        document.getElementById("contactForm").addEventListener("submit", function (e) {
-            e.preventDefault();
+        // AJAX Form Submission Logic (बिना पेज रीलोड किए बैकग्राउंड में ईमेल भेजने के लिए)
+        const contactForm = document.getElementById("contactForm");
+        const submitBtn = document.getElementById("submitBtn");
 
-            let name = document.getElementById("name").value;
-            let email = document.getElementById("email").value;
-            let message = document.getElementById("message").value;
+        contactForm.addEventListener("submit", async function (e) {
+            e.preventDefault(); // Default redirect/reload को रोकता है
 
-            let subject = encodeURIComponent("Portfolio Contact From " + name);
-            let body = encodeURIComponent(
-                "Name: " + name + "\n" +
-                "Email: " + email + "\n\n" +
-                "Message:\n" + message
-            );
+            // बटन को लोडिंग स्टेट में बदलना
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
+            submitBtn.disabled = true;
 
-            // ईमेल भेजने के लिए मेल क्लाइंट को ओपन करेगा
-            window.location.href = `mailto:sujeetdandotiya442@gmail.com?subject=${subject}&body=${body}`;
+            try {
+                const response = await fetch(contactForm.action, {
+                    method: 'POST',
+                    body: new FormData(contactForm),
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.ok) {
+                    submitBtn.innerHTML = 'Message Sent! <i class="fas fa-check"></i>';
+                    contactForm.reset(); // फॉर्म फ़ील्ड्स को खाली करना
+                    alert('Thank you! Your message has been sent successfully.');
+                } else {
+                    throw new Error('Submission Failed');
+                }
+            } catch (error) {
+                submitBtn.innerHTML = 'Error! <i class="fas fa-exclamation-triangle"></i>';
+                alert('Something went wrong. Please try again later.');
+            } finally {
+                // 3 सेकंड के बाद बटन को वापस नॉर्मल स्टेट में लाना
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                }, 3000);
+            }
         });
     </script>
 
